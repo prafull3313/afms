@@ -1,0 +1,67 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /entries/{entryId} {
+      allow read: if true;
+
+      allow create: if isValidEntry(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+function isValidEntry(data) {
+  return data.keys().hasOnly([
+      'date',
+      'customerName',
+      'grainType',
+      'weight',
+      'receivedPayment',
+      'receivedBy',
+      'payment',
+      'depositedOnGirani',
+      'createdAt'
+    ]) &&
+    data.date is string &&
+    data.date.size() >= 8 &&
+    data.date.size() <= 20 &&
+    data.customerName is string &&
+    data.customerName.size() > 0 &&
+    data.customerName.size() <= 80 &&
+    data.grainType is string &&
+    data.grainType in [
+      'Gahu Pith',
+      'Gahu Dalan',
+      'Jwari Pith',
+      'Jwari Dalan',
+      'Bajari Pith',
+      'Bajari Dalan'
+    ] &&
+    data.weight is number &&
+    data.weight > 0 &&
+    data.weight <= 10000 &&
+    data.receivedPayment is string &&
+    data.receivedPayment in ['Yes', 'No'] &&
+    data.receivedBy is string &&
+    data.receivedBy.size() <= 40 &&
+    (
+      data.receivedPayment == 'No' ||
+      data.receivedBy in [
+        'Girani Counter',
+        'Omkar S',
+        'Omkar S Baba',
+        'Prafull',
+        'Omkar P'
+      ]
+    ) &&
+    data.payment is number &&
+    data.payment >= 0 &&
+    data.payment <= 1000000 &&
+    data.depositedOnGirani is string &&
+    data.depositedOnGirani in ['Yes', 'No'] &&
+    data.createdAt is number;
+}

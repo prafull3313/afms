@@ -8,6 +8,7 @@ type TextInputProps = {
   onChange: (event: ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
+  max?: string;
   inputMode?: 'text' | 'decimal' | 'numeric' | 'email' | 'search' | 'tel' | 'url';
 };
 
@@ -18,6 +19,7 @@ const TextInput = ({
   onChange,
   placeholder,
   required = false,
+  max,
   inputMode
 }: TextInputProps) => {
   const handleClick = (event: MouseEvent<HTMLInputElement>) => {
@@ -41,6 +43,7 @@ const TextInput = ({
       onChange={onChange}
       placeholder={placeholder}
       required={required}
+      max={max}
       inputMode={inputMode}
       onClick={handleClick}
     />

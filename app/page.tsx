@@ -71,6 +71,7 @@ const initialFormData: FormData = {
 const customerNamePattern = /^[A-Za-z\s]+$/;
 const decimalPattern = /^\d*\.?\d*$/;
 const formatAmount = (value: number) => Number(value.toFixed(2)).toString();
+const todayDate = new Date().toISOString().split('T')[0];
 
 export default function Home() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
@@ -103,6 +104,15 @@ export default function Home() {
       if (value === '' || decimalPattern.test(value)) {
         setFormData((current) => ({ ...current, [name]: value }));
       }
+      return;
+    }
+
+    if (name === 'receivedBy') {
+      setFormData((current) => ({
+        ...current,
+        receivedBy: value,
+        depositedOnGirani: value === 'Girani Counter' ? 'Yes' : current.depositedOnGirani
+      }));
       return;
     }
 
@@ -244,6 +254,7 @@ export default function Home() {
               name="date"
               value={formData.date}
               onChange={handleTextChange}
+              max={todayDate}
               required
             />
           </FormField>

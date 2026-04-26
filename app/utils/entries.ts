@@ -1,3 +1,13 @@
+import {
+  addDoc,
+  collection,
+  getDocs,
+  orderBy,
+  query,
+  Timestamp
+} from 'firebase/firestore';
+import { getFirestoreDb } from './firebase';
+
 export type YesNo = 'Yes' | 'No';
 
 export type Entry = {
@@ -12,12 +22,14 @@ export type Entry = {
 };
 
 export type EntryWithSheet = Entry & {
+  id: string;
+  createdAt: number;
   sheetName: string;
 };
 
-const STORAGE_KEY = 'afms_entries';
-
-const isBrowser = () => typeof window !== 'undefined';
+type FirestoreEntry = Entry & {
+  createdAt?: Timestamp | number | null;
+};
 
 const getSheetNameFromDate = (value: string) =>
   new Intl.DateTimeFormat('en-US', {
@@ -25,43 +37,54 @@ const getSheetNameFromDate = (value: string) =>
     year: 'numeric'
   }).format(new Date(value));
 
-export const getStoredEntries = (): Entry[] => {
-  if (!isBrowser()) {
-    return [];
+const getCreatedAtValue = (createdAt?: Timestamp | number | null) => {
+  if (createdAt instanceof Timestamp) {
+    return createdAt.toMillis();
   }
 
-  const rawValue = window.localStorage.getItem(STORAGE_KEY);
-
-  if (!rawValue) {
-    return [];
+  if (typeof createdAt === 'number') {
+    return createdAt;
   }
 
-  try {
-    const parsedValue = JSON.parse(rawValue);
-    return Array.isArray(parsedValue) ? parsedValue : [];
-  } catch {
-    return [];
-  }
+  return Date.now();
 };
 
-export const saveEntry = (entry: Entry) => {
-  const existingEntries = getStoredEntries();
-  const updatedEntries = [...existingEntries, entry];
+export const saveEntry = async (entry: Entry) => {
+  const db = getFirestoreDb();
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedEntries));
+  await addDoc(collection(db, 'entries'), {
+    ...entry,
+    createdAt: Date.now()
+  });
 
   return {
-    message: 'Entry saved locally in this browser.',
-    totalEntries: updatedEntries.length
+    message: 'Entry saved successfully.'
   };
 };
 
-export const getEntriesWithSheets = () =>
-  getStoredEntries().map((entry) => ({
-    ...entry,
-    sheetName: getSheetNameFromDate(entry.date)
-  }));
+export const getEntriesWithSheets = async (): Promise<EntryWithSheet[]> => {
+  const db = getFirestoreDb();
+  const entriesQuery = query(collection(db, 'entries'), orderBy('createdAt', 'desc'));
+  const snapshot = await getDocs(entriesQuery);
+
+  return snapshot.docs.map((doc) => {
+    const entry = doc.data() as FirestoreEntry;
+
+    return {
+      id: doc.id,
+      date: entry.date,
+      customerName: entry.customerName,
+      grainType: entry.grainType,
+      weight: Number(entry.weight),
+      receivedPayment: entry.receivedPayment,
+      receivedBy: entry.receivedBy,
+      payment: Number(entry.payment),
+      depositedOnGirani: entry.depositedOnGirani,
+      createdAt: getCreatedAtValue(entry.createdAt),
+      sheetName: getSheetNameFromDate(entry.date)
+    };
+  });
+};
 
 export const getMonthOptions = (entries: EntryWithSheet[]) =>
   Array.from(new Set(entries.map((entry) => entry.sheetName)));
-
