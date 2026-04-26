@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from 'next';
-import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'AFMS - Agricultural Grain Management',
+  title: 'AFMS - Aarogyam Foods Management System',
   description: 'Track and manage customer grain entries efficiently',
   manifest: '/manifest.json',
   appleWebApp: {
@@ -10,7 +9,7 @@ export const metadata: Metadata = {
     statusBarStyle: 'black-translucent',
     title: 'AFMS'
   },
-  formatDetection: {
+formatDetection: {
     telephone: false
   }
 };
