@@ -1,0 +1,14 @@
+.error,
+.success {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 14px;
+}
+
+.error {
+    color: #b42318;
+}
+
+.success {
+    color: #027a48;
+}

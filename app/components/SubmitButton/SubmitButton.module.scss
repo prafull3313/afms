@@ -1,0 +1,32 @@
+.submitButton {
+    grid-column: 1 / -1;
+    border: 0;
+    border-radius: 14px;
+    padding: 14px 18px;
+    background: linear-gradient(135deg, #e46f1a 0%, #ff8a1d 100%);
+    color: #fff8ef;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 12px 24px rgba(228, 111, 26, 0.28);
+    transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.submitButton:not(:disabled):hover {
+    background: linear-gradient(135deg, #f07a1f 0%, #ff992f 100%);
+    transform: translateY(-1px);
+}
+
+.submitButton:not(:disabled):focus-visible {
+    outline: 3px solid #ffb15f;
+    outline-offset: 2px;
+}
+
+.submitButton:disabled {
+    background: #ffe1c2;
+    color: #b68453;
+    box-shadow: none;
+    transform: none;
+    border: 1px solid #f2bc81;
+    cursor: not-allowed;
+}
