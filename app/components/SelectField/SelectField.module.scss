@@ -1,0 +1,14 @@
+.select {
+    width: 100%;
+    border: 1px solid #f2a04c;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    background: #fff8f1;
+    color: #5a2d08;
+}
+
+.select:focus {
+    outline: 2px solid #ea7a18;
+    outline-offset: 1px;
+}

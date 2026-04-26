@@ -1,0 +1,149 @@
+.page {
+    min-height: 100vh;
+    padding: 32px 16px;
+    background: linear-gradient(135deg, #fff1df 0%, #ffc98c 100%);
+}
+
+.card {
+    width: min(100%, 1200px);
+    margin: 0 auto;
+    background: #fffaf4;
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(218, 109, 24, 0.16);
+    border: 1px solid #f6b26b;
+}
+
+.topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.subtitle {
+    margin: 8px 0 0;
+    color: #b85b11;
+    font-size: 16px;
+}
+
+.linkButton {
+    text-decoration: none;
+    background: #e46f1a;
+    color: #fff8ef;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.filterBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.filterLabel {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: #9a4a0c;
+    font-weight: 700;
+}
+
+.filterSelect {
+    min-width: 220px;
+    border: 1px solid #f2a04c;
+    border-radius: 12px;
+    padding: 12px 14px;
+    font-size: 15px;
+    background: #fff8f1;
+    color: #5a2d08;
+}
+
+.filterSelect:focus {
+    outline: 2px solid #ea7a18;
+    outline-offset: 1px;
+}
+
+.countText {
+    margin: 0;
+    color: #b85b11;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+    border: 1px solid #f6b26b;
+    border-radius: 16px;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 980px;
+}
+
+.table th,
+.table td {
+    padding: 14px 16px;
+    text-align: left;
+    border-bottom: 1px solid #f8d5ab;
+}
+
+.table th {
+    background: #ffe7c7;
+    color: #8f4508;
+    font-size: 14px;
+}
+
+.table td {
+    color: #5a2d08;
+    font-size: 15px;
+}
+
+.table tbody tr:nth-child(even) {
+    background: #fff4e7;
+}
+
+.info,
+.error {
+    margin: 0;
+    font-size: 15px;
+}
+
+.info {
+    color: #b85b11;
+}
+
+.error {
+    color: #b42318;
+}
+
+@media (max-width: 640px) {
+    .card {
+        padding: 20px 16px;
+    }
+
+    .topBar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filterBar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filterSelect {
+        min-width: 100%;
+    }
+
+    .linkButton {
+        text-align: center;
+    }
+}
