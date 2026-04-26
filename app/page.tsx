@@ -11,6 +11,7 @@ import SubmitButton from './components/SubmitButton/SubmitButton';
 import TextInput from './components/TextInput/TextInput';
 import styles from './page.module.scss';
 import { handleExcel } from './utils/xl';
+import type { YesNo } from './utils/entries';
 
 const grainOptions = [
   'Gahu Pith',
@@ -43,7 +44,6 @@ const yesNoOptions = [
   { label: 'No', value: 'No' }
 ] as const;
 
-type YesNo = 'Yes' | 'No';
 type YesNoValue = YesNo | '';
 
 type FormData = {

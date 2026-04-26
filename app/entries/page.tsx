@@ -3,25 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import Header from '../components/Header/Header';
+import { downloadEntriesWorkbook } from './exportEntries';
 import styles from './page.module.scss';
-
-type Entry = {
-  date: string;
-  customerName: string;
-  grainType: string;
-  weight: number;
-  receivedPayment: string;
-  receivedBy: string;
-  payment: number;
-  depositedOnGirani: string;
-  sheetName: string;
-};
-
-type EntriesResponse = {
-  totalEntries: number;
-  entries: Entry[];
-  error?: string;
-};
+import { getEntriesWithSheets, getMonthOptions, type EntryWithSheet } from '../utils/entries';
 
 const formatDate = (value: string) => {
   if (!value) {
@@ -38,13 +22,13 @@ const formatDate = (value: string) => {
 };
 
 export default function EntriesPage() {
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<EntryWithSheet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
   const [selectedMonth, setSelectedMonth] = useState('All Months');
 
   const monthOptions = useMemo(
-    () => ['All Months', ...new Set(entries.map((entry) => entry.sheetName))],
+    () => ['All Months', ...getMonthOptions(entries)],
     [entries]
   );
 
@@ -57,27 +41,16 @@ export default function EntriesPage() {
   );
 
   useEffect(() => {
-    const loadEntries = async () => {
-      try {
-        const response = await fetch('/api/excel', { cache: 'no-store' });
-        const result: EntriesResponse = await response.json();
-
-        if (!response.ok) {
-          throw new Error(result.error || 'Failed to load entries.');
-        }
-
-        setEntries(result.entries);
-        setSelectedMonth('All Months');
-      } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : 'Failed to load entries.'
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadEntries();
+    try {
+      setEntries(getEntriesWithSheets());
+      setSelectedMonth('All Months');
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Failed to load entries.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   return (
@@ -98,20 +71,29 @@ export default function EntriesPage() {
 
         {!isLoading && !errorMessage && entries.length > 0 ? (
           <div className={styles.filterBar}>
-            <label className={styles.filterLabel}>
-              <span>View Month</span>
-              <select
-                className={styles.filterSelect}
-                value={selectedMonth}
-                onChange={(event) => setSelectedMonth(event.target.value)}
+            <div className={styles.filterControls}>
+              <label className={styles.filterLabel}>
+                <span>View Month</span>
+                <select
+                  className={styles.filterSelect}
+                  value={selectedMonth}
+                  onChange={(event) => setSelectedMonth(event.target.value)}
+                >
+                  {monthOptions.map((month) => (
+                    <option key={month} value={month}>
+                      {month}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button
+                className={styles.exportButton}
+                type="button"
+                onClick={() => downloadEntriesWorkbook(filteredEntries)}
               >
-                {monthOptions.map((month) => (
-                  <option key={month} value={month}>
-                    {month}
-                  </option>
-                ))}
-              </select>
-            </label>
+                Download Excel
+              </button>
+            </div>
             <p className={styles.countText}>{filteredEntries.length} entries shown</p>
           </div>
         ) : null}
