@@ -40,11 +40,6 @@ export default function EntriesPage() {
     [entries, selectedMonth]
   );
 
-  const totalPayment = useMemo(
-    () => filteredEntries.reduce((sum, entry) => sum + entry.payment, 0),
-    [filteredEntries]
-  );
-
   const totalResults = useMemo(() => {
     const results = {
       totalPayment: 0,
@@ -208,6 +203,7 @@ export default function EntriesPage() {
                     <th>Payment</th>
                     <th>Deposited In Girani</th>
                     <th>Sheet</th>
+                    <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -222,6 +218,11 @@ export default function EntriesPage() {
                       <td>{entry.payment}</td>
                       <td>{entry.depositedOnGirani || '-'}</td>
                       <td>{entry.sheetName}</td>
+                      <td>
+                        <Link className={styles.editLink} href={`/?entryId=${entry.id}`}>
+                          Edit
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

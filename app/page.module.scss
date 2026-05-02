@@ -46,6 +46,53 @@
     gap: 20px;
 }
 
+.formNotice {
+    grid-column: 1 / -1;
+    margin: 0;
+    color: #b85b11;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.formActions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: stretch;
+}
+
+.formActions > button {
+    grid-column: auto;
+}
+
+.formActions > button:only-child {
+    grid-column: 1 / -1;
+}
+
+.cancelButton {
+    border: 1px solid #e46f1a;
+    border-radius: 14px;
+    padding: 14px 18px;
+    background: #fff8f1;
+    color: #9a4a0c;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.cancelButton:hover,
+.cancelButton:focus-visible {
+    background: #ffe7c7;
+    outline: none;
+}
+
+.cancelButton:disabled {
+    color: #b68453;
+    border-color: #f2bc81;
+    cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
     .card {
         padding: 24px 18px;
@@ -61,6 +108,10 @@
     }
 
     .form {
+        grid-template-columns: 1fr;
+    }
+
+    .formActions {
         grid-template-columns: 1fr;
     }
 }

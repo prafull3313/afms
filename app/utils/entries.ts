@@ -1,10 +1,13 @@
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   orderBy,
   query,
-  Timestamp
+  Timestamp,
+  updateDoc
 } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
 
@@ -59,6 +62,41 @@ export const saveEntry = async (entry: Entry) => {
 
   return {
     message: 'Entry saved successfully.'
+  };
+};
+
+export const getEntryById = async (id: string): Promise<EntryWithSheet> => {
+  const db = getFirestoreDb();
+  const entrySnapshot = await getDoc(doc(db, 'entries', id));
+
+  if (!entrySnapshot.exists()) {
+    throw new Error('Entry not found.');
+  }
+
+  const entry = entrySnapshot.data() as FirestoreEntry;
+
+  return {
+    id: entrySnapshot.id,
+    date: entry.date,
+    customerName: entry.customerName,
+    grainType: entry.grainType,
+    weight: Number(entry.weight),
+    receivedPayment: entry.receivedPayment,
+    receivedBy: entry.receivedBy,
+    payment: Number(entry.payment),
+    depositedOnGirani: entry.depositedOnGirani,
+    createdAt: getCreatedAtValue(entry.createdAt),
+    sheetName: getSheetNameFromDate(entry.date)
+  };
+};
+
+export const updateEntry = async (id: string, entry: Entry) => {
+  const db = getFirestoreDb();
+
+  await updateDoc(doc(db, 'entries', id), entry);
+
+  return {
+    message: 'Entry updated successfully.'
   };
 };
 

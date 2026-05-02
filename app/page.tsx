@@ -10,8 +10,8 @@ import StatusMessage from './components/StatusMessage/StatusMessage';
 import SubmitButton from './components/SubmitButton/SubmitButton';
 import TextInput from './components/TextInput/TextInput';
 import styles from './page.module.scss';
-import { handleExcel } from './utils/xl';
-import type { YesNo } from './utils/entries';
+import { handleEntryUpdate, handleExcel } from './utils/xl';
+import { getEntryById, type YesNo } from './utils/entries';
 
 const grainOptions = [
   'Gahu Pith',
@@ -77,6 +77,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingEntry, setIsLoadingEntry] = useState(false);
+  const [editingEntryId, setEditingEntryId] = useState('');
 
   const handleTextChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -119,6 +121,44 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const entryId = new URLSearchParams(window.location.search).get('entryId');
+
+    if (!entryId) {
+      return;
+    }
+
+    const loadEntryForUpdate = async () => {
+      setIsLoadingEntry(true);
+      setErrorMessage('');
+      setSuccessMessage('');
+
+      try {
+        const entry = await getEntryById(entryId);
+
+        setEditingEntryId(entry.id);
+        setFormData({
+          date: entry.date,
+          customerName: entry.customerName,
+          grainType: entry.grainType,
+          weight: entry.weight.toString(),
+          receivedPayment: entry.receivedPayment,
+          receivedBy: entry.receivedBy,
+          payment: entry.payment.toString(),
+          depositedOnGirani: entry.depositedOnGirani
+        });
+      } catch (error) {
+        setErrorMessage(
+          error instanceof Error ? error.message : 'Failed to load the entry.'
+        );
+      } finally {
+        setIsLoadingEntry(false);
+      }
+    };
+
+    void loadEntryForUpdate();
+  }, []);
+
+  useEffect(() => {
     if (!formData.grainType || !formData.weight) {
       setFormData((current) => ({
         ...current,
@@ -154,6 +194,7 @@ export default function Home() {
   const isCustomerNameValid =
     trimmedCustomerName.length > 0 && customerNamePattern.test(trimmedCustomerName);
   const isFormValid =
+    !isLoadingEntry &&
     Boolean(formData.date) &&
     isCustomerNameValid &&
     Boolean(formData.grainType) &&
@@ -211,7 +252,7 @@ export default function Home() {
     setIsSubmitting(true);
 
     try {
-      const result = await handleExcel({
+      const entry = {
         date: formData.date,
         customerName: trimmedCustomerName,
         grainType: formData.grainType,
@@ -220,10 +261,16 @@ export default function Home() {
         receivedBy: formData.receivedBy,
         payment: Number(formData.payment),
         depositedOnGirani: formData.depositedOnGirani
-      });
+      };
+
+      const result = editingEntryId
+        ? await handleEntryUpdate(editingEntryId, entry)
+        : await handleExcel(entry);
 
       setSuccessMessage(result.message);
       setFormData(initialFormData);
+      setEditingEntryId('');
+      window.history.replaceState(null, '', window.location.pathname);
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : 'Failed to save the entry.'
@@ -233,13 +280,23 @@ export default function Home() {
     }
   };
 
+  const handleCancelUpdate = () => {
+    setFormData(initialFormData);
+    setEditingEntryId('');
+    setErrorMessage('');
+    setSuccessMessage('');
+    window.history.replaceState(null, '', window.location.pathname);
+  };
+
   return (
     <main className={styles.page}>
       <div className={styles.card}>
         <div className={styles.topBar}>
           <div>
             <Header />
-            <p className={styles.subtitle}>Customer grain entry form</p>
+            <p className={styles.subtitle}>
+              {editingEntryId ? 'Update saved customer grain entry' : 'Customer grain entry form'}
+            </p>
           </div>
           <Link className={styles.linkButton} href="/entries">
             View Entries
@@ -247,6 +304,10 @@ export default function Home() {
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>
+          {isLoadingEntry ? (
+            <p className={styles.formNotice}>Loading saved entry...</p>
+          ) : null}
+
           <FormField label="Date">
             <TextInput
               type="date"
@@ -334,12 +395,24 @@ export default function Home() {
           <StatusMessage type="error" message={errorMessage} />
           <StatusMessage type="success" message={successMessage} />
 
-          <SubmitButton
-            isSubmitting={isSubmitting}
-            disabled={!isFormValid}
-            label="Save Entry"
-            submittingLabel="Saving..."
-          />
+          <div className={styles.formActions}>
+            {editingEntryId ? (
+              <button
+                className={styles.cancelButton}
+                type="button"
+                onClick={handleCancelUpdate}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            ) : null}
+            <SubmitButton
+              isSubmitting={isSubmitting}
+              disabled={!isFormValid}
+              label={editingEntryId ? 'Update Entry' : 'Save Entry'}
+              submittingLabel={editingEntryId ? 'Updating...' : 'Saving...'}
+            />
+          </div>
         </form>
       </div>
     </main>
