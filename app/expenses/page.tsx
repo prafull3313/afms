@@ -76,6 +76,17 @@ export default function ExpensesPage() {
     [filteredExpenses]
   );
 
+  const totalsByPaidBy = useMemo(
+    () =>
+      expensePaidByOptions.map((paidBy) => ({
+        paidBy,
+        amount: filteredExpenses
+          .filter((expense) => expense.paidBy === paidBy)
+          .reduce((sum, expense) => sum + expense.amount, 0)
+      })),
+    [filteredExpenses]
+  );
+
   const isFormValid =
     Boolean(formData.paidBy) &&
     Boolean(formData.amount) &&
@@ -287,6 +298,15 @@ export default function ExpensesPage() {
               <div className={styles.totalBlock}>
                 <span>Total Expense:</span>
                 <strong>Rs {totalAmount}</strong>
+              </div>
+
+              <div className={styles.personTotalsGrid}>
+                {totalsByPaidBy.map((total) => (
+                  <div className={styles.personTotalItem} key={total.paidBy}>
+                    <span>{total.paidBy}</span>
+                    <strong>Rs {total.amount}</strong>
+                  </div>
+                ))}
               </div>
 
               <div className={styles.tableWrapper}>

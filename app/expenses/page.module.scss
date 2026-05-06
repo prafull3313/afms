@@ -138,6 +138,32 @@
     font-weight: 700;
 }
 
+.personTotalsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.personTotalItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fffaf4;
+    border: 1px solid #f6b26b;
+    border-left: 4px solid #e46f1a;
+    border-radius: 8px;
+    color: #8f4508;
+    font-weight: 700;
+}
+
+.personTotalItem strong {
+    color: #e46f1a;
+    white-space: nowrap;
+}
+
 .tableWrapper {
     overflow-x: auto;
     border: 1px solid #f6b26b;
@@ -205,5 +231,9 @@
 
     .filterSelect {
         min-width: 100%;
+    }
+
+    .personTotalsGrid {
+        grid-template-columns: 1fr;
     }
 }
