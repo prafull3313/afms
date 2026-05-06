@@ -298,9 +298,14 @@ export default function Home() {
               {editingEntryId ? 'Update saved customer grain entry' : 'Customer grain entry form'}
             </p>
           </div>
-          <Link className={styles.linkButton} href="/entries">
-            View Entries
-          </Link>
+          <div className={styles.navLinks}>
+            <Link className={styles.linkButton} href="/entries">
+              View Entries
+            </Link>
+            <Link className={styles.linkButton} href="/expenses">
+              Manage Expenses
+            </Link>
+          </div>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit}>

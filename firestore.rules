@@ -5,6 +5,14 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if isValidEntry(request.resource.data);
+      allow update: if isValidEntry(request.resource.data);
+      allow delete: if false;
+    }
+
+    match /expenses/{expenseId} {
+      allow read: if true;
+
+      allow create: if isValidExpense(request.resource.data);
       allow update, delete: if false;
     }
 
@@ -63,5 +71,27 @@ function isValidEntry(data) {
     data.payment <= 1000000 &&
     data.depositedOnGirani is string &&
     data.depositedOnGirani in ['Yes', 'No'] &&
+    data.createdAt is number;
+}
+
+function isValidExpense(data) {
+  return data.keys().hasOnly([
+      'paidBy',
+      'amount',
+      'details',
+      'date',
+      'createdAt'
+    ]) &&
+    data.paidBy is string &&
+    data.paidBy in ['Omkar S', 'Omkar P', 'Prafull'] &&
+    data.amount is number &&
+    data.amount > 0 &&
+    data.amount <= 1000000 &&
+    data.details is string &&
+    data.details.size() > 0 &&
+    data.details.size() <= 500 &&
+    data.date is string &&
+    data.date.size() >= 8 &&
+    data.date.size() <= 20 &&
     data.createdAt is number;
 }
