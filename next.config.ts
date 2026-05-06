@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true
   },
-  basePath: isProduction ? '/afms' : '',
+  basePath: '/afms',
   assetPrefix: isProduction ? '/afms/' : undefined,
   reactStrictMode: true,
   poweredByHeader: false
