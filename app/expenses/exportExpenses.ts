@@ -1,7 +1,17 @@
 import { utils, writeFile } from 'xlsx';
 import type { ExpenseWithSheet } from '../utils/expenses';
 
-const FILE_NAME = 'afms-expenses.xlsx';
+const getDatedFileName = () => {
+  const currentDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
+    .format(new Date())
+    .replace(/ /g, '-');
+
+  return `afms-expenses-${currentDate}.xlsx`;
+};
 
 const SHEET_HEADERS = [
   'Expense Date',
@@ -36,5 +46,5 @@ export const downloadExpensesWorkbook = (expenses: ExpenseWithSheet[]) => {
     utils.book_append_sheet(workbook, worksheet, sheetName);
   });
 
-  writeFile(workbook, FILE_NAME);
+  writeFile(workbook, getDatedFileName());
 };

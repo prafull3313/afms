@@ -1,7 +1,17 @@
 import { utils, writeFile } from 'xlsx';
 import type { EntryWithSheet } from '../utils/entries';
 
-const FILE_NAME = 'afms.xlsx';
+const getDatedFileName = () => {
+  const currentDate = new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  })
+    .format(new Date())
+    .replace(/ /g, '-');
+
+  return `afms-${currentDate}.xlsx`;
+};
 
 const SHEET_HEADERS = [
   'दिनांक',
@@ -41,5 +51,5 @@ export const downloadEntriesWorkbook = (entries: EntryWithSheet[]) => {
     utils.book_append_sheet(workbook, worksheet, sheetName);
   });
 
-  writeFile(workbook, FILE_NAME);
+  writeFile(workbook, getDatedFileName());
 };

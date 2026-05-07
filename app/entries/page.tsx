@@ -21,6 +21,14 @@ const formatDate = (value: string) => {
   return new Intl.DateTimeFormat('en-GB').format(date);
 };
 
+const paymentHolderOptions = [
+  'Omkar S',
+  'Omkar S Baba',
+  'Prafull',
+  'Omkar P',
+  'Girani Counter'
+] as const;
+
 export default function EntriesPage() {
   const [entries, setEntries] = useState<EntryWithSheet[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,6 +83,29 @@ export default function EntriesPage() {
     });
 
     return results;
+  }, [filteredEntries]);
+
+  const paymentHoldingResults = useMemo(() => {
+    const holderTotals = paymentHolderOptions.map((holder) => ({
+      holder,
+      amount: filteredEntries
+        .filter((entry) => {
+          if (entry.receivedPayment !== 'Yes') {
+            return false;
+          }
+
+          const paymentHolder =
+            entry.depositedOnGirani === 'Yes' ? 'Girani Counter' : entry.receivedBy;
+
+          return paymentHolder === holder;
+        })
+        .reduce((sum, entry) => sum + entry.payment, 0)
+    }));
+
+    return {
+      totalHeld: holderTotals.reduce((sum, holder) => sum + holder.amount, 0),
+      holderTotals
+    };
   }, [filteredEntries]);
 
   useEffect(() => {
@@ -185,6 +216,22 @@ export default function EntriesPage() {
               <span className={styles.resultLabel}>Weight:</span>
               <span className={styles.resultValue}>{totalResults.totalWeight} KGs</span>
             </div>
+          </div>
+        </div>
+
+        <div className={styles.resultsBlock}>
+          <h3 className={styles.resultsTitle}>Payment Holding</h3>
+          <div className={styles.resultsGrid}>
+            <div className={styles.resultItem}>
+              <span className={styles.resultLabel}>Total Held:</span>
+              <span className={styles.resultValue}>Rs {paymentHoldingResults.totalHeld}</span>
+            </div>
+            {paymentHoldingResults.holderTotals.map((holderTotal) => (
+              <div className={styles.resultItem} key={holderTotal.holder}>
+                <span className={styles.resultLabel}>{holderTotal.holder}:</span>
+                <span className={styles.resultValue}>Rs {holderTotal.amount}</span>
+              </div>
+            ))}
           </div>
         </div>
 
