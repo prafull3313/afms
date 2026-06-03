@@ -16,6 +16,14 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    match /metadata/{metadataId} {
+      allow read: if true;
+
+      allow create: if isValidMetadata(request.resource.data);
+      allow update: if isValidMetadata(request.resource.data);
+      allow delete: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
@@ -94,4 +102,14 @@ function isValidExpense(data) {
     data.date.size() >= 8 &&
     data.date.size() <= 20 &&
     data.createdAt is number;
+}
+
+function isValidMetadata(data) {
+  return data.keys().hasAll(['key', 'value', 'createdAt', 'updatedAt']) &&
+    data.key is string &&
+    data.key.size() > 0 &&
+    data.key.size() <= 100 &&
+    data.createdAt is number &&
+    data.updatedAt is number &&
+    (!('description' in data) || data.description is string);
 }

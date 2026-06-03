@@ -11,6 +11,7 @@ import SubmitButton from './components/SubmitButton/SubmitButton';
 import TextInput from './components/TextInput/TextInput';
 import styles from './page.module.scss';
 import { handleEntryUpdate, handleExcel } from './utils/xl';
+import { getGrainTypePrices, getAllRatesInfo } from './utils/metadata';
 import { getEntryById, type YesNo } from './utils/entries';
 
 const grainOptions = [
@@ -22,13 +23,13 @@ const grainOptions = [
   'Bajari Dalan'
 ] as const;
 
-const grainTypePrices: Record<(typeof grainOptions)[number], number> = {
+const defaultGrainTypePrices: Record<(typeof grainOptions)[number], number> = {
   'Gahu Pith': 65,
-  'Gahu Dalan': 8,
+  'Gahu Dalan': 10,
   'Jwari Pith': 80,
-  'Jwari Dalan': 8,
+  'Jwari Dalan': 10,
   'Bajari Pith': 80,
-  'Bajari Dalan': 8
+  'Bajari Dalan': 10
 };
 
 const receivedByOptions = [
@@ -79,6 +80,23 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingEntry, setIsLoadingEntry] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState('');
+  const [grainTypePrices, setGrainTypePrices] = useState<Record<(typeof grainOptions)[number], number>>(defaultGrainTypePrices);
+
+  useEffect(() => {
+    const loadGrainPrices = async () => {
+      try {
+        const prices = await getGrainTypePrices();
+
+        if (prices) {
+          setGrainTypePrices(prices);
+        }
+      } catch (error) {
+        console.error('Failed to load grain type prices from metadata:', error);
+      }
+    };
+
+    void loadGrainPrices();
+  }, []);
 
   const handleTextChange = (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -188,7 +206,7 @@ export default function Home() {
             payment: calculatedPayment
           }
     );
-  }, [formData.grainType, formData.weight]);
+  }, [formData.grainType, formData.weight, grainTypePrices]);
 
   const trimmedCustomerName = formData.customerName.trim();
   const isCustomerNameValid =

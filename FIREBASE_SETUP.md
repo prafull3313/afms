@@ -17,10 +17,11 @@
 - Publish the rules
 
 These rules:
-- allow public reads for the entries page
-- allow public creates for new form submissions
-- block update/delete
-- validate the exact fields and allowed values for your form
+- allow public reads for the entries, expenses, and metadata collections
+- allow public creates for new form submissions and metadata entries
+- allow updates to metadata entries
+- block delete operations
+- validate the exact fields and allowed values for your form and metadata
 
 ## 4. Copy Firebase web config
 - In Firebase Console: `Project settings` -> `General`
