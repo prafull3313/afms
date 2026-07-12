@@ -33,14 +33,7 @@ export type MetadataWithId = Metadata & {
   rawData?: Record<string, unknown>;
 };
 
-export type GrainTypePricesMetadata = {
-  'Gahu Pith': number;
-  'Gahu Dalan': number;
-  'Jwari Pith': number;
-  'Jwari Dalan': number;
-  'Bajari Pith': number;
-  'Bajari Dalan': number;
-};
+export type GrainTypePricesMetadata = Record<string, number>;
 
 type FirestoreMetadata = Metadata & {
   createdAt?: number | null;
@@ -52,6 +45,57 @@ const getCreatedAtValue = (createdAt?: number | null) =>
 
 const getUpdatedAtValue = (updatedAt?: number | null) =>
   typeof updatedAt === 'number' ? updatedAt : Date.now();
+
+const extractGrainTypePrices = (value: unknown): GrainTypePricesMetadata | null => {
+  if (!value || typeof value !== 'object') {
+    return null;
+  }
+
+  const source = value as Record<string, unknown>;
+
+  if ('metadata' in source && source.metadata && typeof source.metadata === 'object') {
+    const metadataValue = source.metadata as Record<string, unknown>;
+    if ('rates' in metadataValue && metadataValue.rates && typeof metadataValue.rates === 'object') {
+      return metadataValue.rates as GrainTypePricesMetadata;
+    }
+  }
+
+  if ('rates' in source && source.rates && typeof source.rates === 'object') {
+    return source.rates as GrainTypePricesMetadata;
+  }
+
+  const directRates = Object.entries(source).reduce<Record<string, number>>((result, [key, rate]) => {
+    if (typeof rate === 'number') {
+      result[key] = rate;
+    }
+    return result;
+  }, {});
+
+  const hasDirectRates = Object.keys(directRates).length > 0;
+  return hasDirectRates ? directRates : null;
+};
+
+const getRatesFromMetadataEntry = (meta: MetadataWithId): GrainTypePricesMetadata | null => {
+  const fromValue = extractGrainTypePrices(meta.value);
+  if (fromValue) {
+    return fromValue;
+  }
+
+  if (meta.rawData && typeof meta.rawData === 'object') {
+    const rawData = meta.rawData as Record<string, unknown>;
+
+    if ('value' in rawData && rawData.value !== undefined) {
+      const fromNestedValue = extractGrainTypePrices(rawData.value);
+      if (fromNestedValue) {
+        return fromNestedValue;
+      }
+    }
+
+    return extractGrainTypePrices(rawData);
+  }
+
+  return null;
+};
 
 export const saveMetadata = async (metadata: Metadata) => {
   const db = getFirestoreDb();
@@ -119,7 +163,7 @@ export const getAllMetadata = async (): Promise<MetadataWithId[]> => {
   const metadataQuery = query(collection(db, 'metadata'));
   const snapshot = await getDocs(metadataQuery);
 
-  return snapshot.docs.map((metadataDoc) => {
+  const metadataItems = snapshot.docs.map((metadataDoc) => {
     const metadata = metadataDoc.data() as FirestoreMetadata;
 
     return {
@@ -131,6 +175,17 @@ export const getAllMetadata = async (): Promise<MetadataWithId[]> => {
       updatedAt: getUpdatedAtValue(metadata.updatedAt),
       rawData: metadata as Record<string, unknown>
     };
+  });
+
+  return metadataItems.sort((left, right) => {
+    const leftUpdatedAt = left.updatedAt ?? 0;
+    const rightUpdatedAt = right.updatedAt ?? 0;
+
+    if (rightUpdatedAt !== leftUpdatedAt) {
+      return rightUpdatedAt - leftUpdatedAt;
+    }
+
+    return (right.createdAt ?? 0) - (left.createdAt ?? 0);
   });
 };
 
@@ -165,6 +220,7 @@ export const setMetadataByKey = async (metadata: Metadata) => {
 export const getGrainTypePrices = async (): Promise<GrainTypePricesMetadata | null> => {
   try {
     const allMetadata = await getAllMetadata();
+    console.log('Fetched all metadata:', allMetadata);
 
     if (!allMetadata || allMetadata.length === 0) {
       return null;
@@ -172,31 +228,9 @@ export const getGrainTypePrices = async (): Promise<GrainTypePricesMetadata | nu
 
     for (const meta of allMetadata) {
       if (meta.id === GRAIN_TYPE_PRICES_METADATA_KEY || meta.key === GRAIN_TYPE_PRICES_METADATA_KEY) {
-        if (meta.value && typeof meta.value === 'object') {
-          const metadataValue = meta.value as GrainTypePricesMetadataValue;
-
-          if (metadataValue.metadata && typeof metadataValue.metadata === 'object' && metadataValue.metadata.rates) {
-            return metadataValue.metadata.rates;
-          }
-
-          if (metadataValue.rates) {
-            return metadataValue.rates;
-          }
-        }
-
-        if (meta.rawData && typeof meta.rawData === 'object') {
-          const rawData = meta.rawData as Record<string, unknown>;
-
-          if ('metadata' in rawData && typeof rawData.metadata === 'object' && rawData.metadata !== null) {
-            const metadataField = rawData.metadata as Record<string, unknown>;
-            if ('rates' in metadataField) {
-              return metadataField.rates as GrainTypePricesMetadata;
-            }
-          }
-
-          if ('Gahu Pith' in rawData) {
-            return rawData as GrainTypePricesMetadata;
-          }
+        const rates = getRatesFromMetadataEntry(meta);
+        if (rates) {
+          return rates;
         }
       }
     }
@@ -218,28 +252,7 @@ export const getAllRatesInfo = async () => {
 
     const ratesInfo = allMetadata
       .map((meta) => {
-        let rates: GrainTypePricesMetadata | null = null;
-
-        if (meta.value && typeof meta.value === 'object') {
-          const metadataValue = meta.value as GrainTypePricesMetadataValue;
-
-          if (metadataValue.metadata && typeof metadataValue.metadata === 'object' && metadataValue.metadata.rates) {
-            rates = metadataValue.metadata.rates;
-          } else if (metadataValue.rates) {
-            rates = metadataValue.rates;
-          }
-        }
-
-        if (!rates && meta.rawData && typeof meta.rawData === 'object') {
-          const rawData = meta.rawData as Record<string, unknown>;
-
-          if ('metadata' in rawData && typeof rawData.metadata === 'object' && rawData.metadata !== null) {
-            const metadataField = rawData.metadata as Record<string, unknown>;
-            if ('rates' in metadataField) {
-              rates = metadataField.rates as GrainTypePricesMetadata;
-            }
-          }
-        }
+        const rates = getRatesFromMetadataEntry(meta);
 
         return {
           id: meta.id,

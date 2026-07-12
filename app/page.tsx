@@ -11,26 +11,8 @@ import SubmitButton from './components/SubmitButton/SubmitButton';
 import TextInput from './components/TextInput/TextInput';
 import styles from './page.module.scss';
 import { handleEntryUpdate, handleExcel } from './utils/xl';
-import { getGrainTypePrices, getAllRatesInfo } from './utils/metadata';
+import { getGrainTypePrices } from './utils/metadata';
 import { getEntryById, type YesNo } from './utils/entries';
-
-const grainOptions = [
-  'Gahu Pith',
-  'Gahu Dalan',
-  'Jwari Pith',
-  'Jwari Dalan',
-  'Bajari Pith',
-  'Bajari Dalan'
-] as const;
-
-const defaultGrainTypePrices: Record<(typeof grainOptions)[number], number> = {
-  'Gahu Pith': 65,
-  'Gahu Dalan': 10,
-  'Jwari Pith': 80,
-  'Jwari Dalan': 10,
-  'Bajari Pith': 80,
-  'Bajari Dalan': 10
-};
 
 const receivedByOptions = [
   'Girani Counter',
@@ -80,15 +62,18 @@ export default function Home() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingEntry, setIsLoadingEntry] = useState(false);
   const [editingEntryId, setEditingEntryId] = useState('');
-  const [grainTypePrices, setGrainTypePrices] = useState<Record<(typeof grainOptions)[number], number>>(defaultGrainTypePrices);
+  const [grainTypePrices, setGrainTypePrices] = useState<Record<string, number>>({});
+  const grainOptions = Object.keys(grainTypePrices).sort();
 
   useEffect(() => {
     const loadGrainPrices = async () => {
       try {
         const prices = await getGrainTypePrices();
 
-        if (prices) {
+        if (prices && Object.keys(prices).length > 0) {
           setGrainTypePrices(prices);
+        } else {
+          setGrainTypePrices({});
         }
       } catch (error) {
         console.error('Failed to load grain type prices from metadata:', error);
@@ -185,7 +170,7 @@ export default function Home() {
       return;
     }
 
-    const grainPrice = grainTypePrices[formData.grainType as keyof typeof grainTypePrices];
+    const grainPrice = grainTypePrices[formData.grainType];
     const weightValue = Number(formData.weight);
 
     if (!grainPrice || Number.isNaN(weightValue)) {
