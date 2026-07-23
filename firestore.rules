@@ -13,7 +13,8 @@ service cloud.firestore {
       allow read: if true;
 
       allow create: if isValidExpense(request.resource.data);
-      allow update, delete: if false;
+      allow update: if isValidExpense(request.resource.data);
+      allow delete: if false;
     }
 
     match /metadata/{metadataId} {
@@ -88,7 +89,9 @@ function isValidExpense(data) {
       'amount',
       'details',
       'date',
-      'createdAt'
+      'createdAt',
+      'settled',
+      'settledAt'
     ]) &&
     data.paidBy is string &&
     data.paidBy in ['Omkar S', 'Omkar P', 'Prafull'] &&
@@ -101,7 +104,10 @@ function isValidExpense(data) {
     data.date is string &&
     data.date.size() >= 8 &&
     data.date.size() <= 20 &&
-    data.createdAt is number;
+    data.createdAt is number &&
+    data.settled is bool &&
+    ((data.settled == true && data.settledAt is number) ||
+      (data.settled == false && data.settledAt == null));
 }
 
 function isValidMetadata(data) {

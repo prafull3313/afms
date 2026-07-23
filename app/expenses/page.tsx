@@ -13,6 +13,7 @@ import {
   getExpenseMonthOptions,
   getExpensesWithSheets,
   saveExpense,
+  updateExpenseSettlement,
   type ExpensePaidBy,
   type ExpenseWithSheet
 } from '../utils/expenses';
@@ -24,13 +25,15 @@ type ExpenseFormData = {
   amount: string;
   details: string;
   date: string;
+  settled: boolean;
 };
 
 const initialFormData: ExpenseFormData = {
   paidBy: '',
   amount: '',
   details: '',
-  date: ''
+  date: '',
+  settled: false
 };
 
 const decimalPattern = /^\d*\.?\d*$/;
@@ -55,6 +58,7 @@ export default function ExpensesPage() {
   const [selectedMonth, setSelectedMonth] = useState('All Months');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [updatingSettlementId, setUpdatingSettlementId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -86,6 +90,18 @@ export default function ExpensesPage() {
       })),
     [filteredExpenses]
   );
+
+  const settlementSummary = useMemo(() => {
+    const settled = filteredExpenses.filter((expense) => expense.settled);
+    const pending = filteredExpenses.filter((expense) => !expense.settled);
+
+    return {
+      settledCount: settled.length,
+      pendingCount: pending.length,
+      settledAmount: settled.reduce((sum, expense) => sum + expense.amount, 0),
+      pendingAmount: pending.reduce((sum, expense) => sum + expense.amount, 0)
+    };
+  }, [filteredExpenses]);
 
   const isFormValid =
     Boolean(formData.paidBy) &&
@@ -130,6 +146,11 @@ export default function ExpensesPage() {
     setFormData((current) => ({ ...current, [name]: value }));
   };
 
+  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const { checked } = event.target;
+    setFormData((current) => ({ ...current, settled: checked }));
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setErrorMessage('');
@@ -162,7 +183,8 @@ export default function ExpensesPage() {
         paidBy: formData.paidBy,
         amount: Number(formData.amount),
         details: formData.details.trim(),
-        date: formData.date
+        date: formData.date,
+        settled: formData.settled
       });
 
       setSuccessMessage(result.message);
@@ -174,6 +196,24 @@ export default function ExpensesPage() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSettlementToggle = async (expenseId: string, settled: boolean) => {
+    setUpdatingSettlementId(expenseId);
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    try {
+      const result = await updateExpenseSettlement(expenseId, !settled);
+      setSuccessMessage(result.message);
+      await loadExpenses();
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : 'Unable to update settlement status.'
+      );
+    } finally {
+      setUpdatingSettlementId(null);
     }
   };
 
@@ -238,6 +278,17 @@ export default function ExpensesPage() {
             />
           </FormField>
 
+          <div className={styles.checkboxField}>
+            <label className={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={formData.settled}
+                onChange={handleCheckboxChange}
+              />
+              <span>Mark this expense as settled</span>
+            </label>
+          </div>
+
           <StatusMessage type="error" message={errorMessage} />
           <StatusMessage type="success" message={successMessage} />
 
@@ -300,6 +351,17 @@ export default function ExpensesPage() {
                 <strong>Rs {totalAmount}</strong>
               </div>
 
+              <div className={styles.summaryGrid}>
+                <div className={styles.summaryCard}>
+                  <span>Settled</span>
+                  <strong>Rs {settlementSummary.settledAmount}</strong>
+                </div>
+                <div className={styles.summaryCard}>
+                  <span>Pending</span>
+                  <strong>Rs {settlementSummary.pendingAmount}</strong>
+                </div>
+              </div>
+
               <div className={styles.personTotalsGrid}>
                 {totalsByPaidBy.map((total) => (
                   <div className={styles.personTotalItem} key={total.paidBy}>
@@ -317,7 +379,9 @@ export default function ExpensesPage() {
                       <th>Expense Paid By</th>
                       <th>Expense Amount</th>
                       <th>Expense Details</th>
+                      <th>Settlement</th>
                       <th>Sheet</th>
+                      <th>Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -327,7 +391,26 @@ export default function ExpensesPage() {
                         <td>{expense.paidBy}</td>
                         <td>{expense.amount}</td>
                         <td>{expense.details}</td>
+                        <td>
+                          <span className={expense.settled ? styles.statusBadgeActive : styles.statusBadgePending}>
+                            {expense.settled ? 'Settled' : 'Pending'}
+                          </span>
+                        </td>
                         <td>{expense.sheetName}</td>
+                        <td>
+                          <button
+                            className={styles.settlementButton}
+                            type="button"
+                            onClick={() => void handleSettlementToggle(expense.id, expense.settled)}
+                            disabled={updatingSettlementId === expense.id}
+                          >
+                            {updatingSettlementId === expense.id
+                              ? 'Updating...'
+                              : expense.settled
+                                ? 'Mark Pending'
+                                : 'Mark Settled'}
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>

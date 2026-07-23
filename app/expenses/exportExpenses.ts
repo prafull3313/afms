@@ -17,7 +17,8 @@ const SHEET_HEADERS = [
   'Expense Date',
   'Expense Paid By',
   'Expense Amount',
-  'Expense Details'
+  'Expense Details',
+  'Settlement Status'
 ] as const;
 
 const mapRowsForSheet = (expenses: ExpenseWithSheet[]) =>
@@ -25,7 +26,8 @@ const mapRowsForSheet = (expenses: ExpenseWithSheet[]) =>
     expense.date,
     expense.paidBy,
     expense.amount,
-    expense.details
+    expense.details,
+    expense.settled ? 'Settled' : 'Pending'
   ]);
 
 export const downloadExpensesWorkbook = (expenses: ExpenseWithSheet[]) => {

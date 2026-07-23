@@ -1,9 +1,12 @@
 import {
   addDoc,
   collection,
+  doc,
+  getDoc,
   getDocs,
   orderBy,
-  query
+  query,
+  updateDoc
 } from 'firebase/firestore';
 import { getFirestoreDb } from './firebase';
 
@@ -16,6 +19,8 @@ export type Expense = {
   amount: number;
   details: string;
   date: string;
+  settled?: boolean;
+  settledAt?: number | null;
 };
 
 export type ExpenseWithSheet = Expense & {
@@ -26,6 +31,7 @@ export type ExpenseWithSheet = Expense & {
 
 type FirestoreExpense = Expense & {
   createdAt?: number | null;
+  settledAt?: number | null;
 };
 
 const getSheetNameFromDate = (value: string) =>
@@ -42,11 +48,36 @@ export const saveExpense = async (expense: Expense) => {
 
   await addDoc(collection(db, 'expenses'), {
     ...expense,
+    settled: Boolean(expense.settled),
+    settledAt: expense.settled ? Date.now() : null,
     createdAt: Date.now()
   });
 
   return {
     message: 'Expense saved successfully.'
+  };
+};
+
+export const updateExpenseSettlement = async (id: string, settled: boolean) => {
+  const db = getFirestoreDb();
+  const expenseRef = doc(db, 'expenses', id);
+  const expenseSnapshot = await getDoc(expenseRef);
+
+  if (!expenseSnapshot.exists()) {
+    throw new Error('Expense not found.');
+  }
+
+  const existingExpense = expenseSnapshot.data() as FirestoreExpense;
+
+  await updateDoc(expenseRef, {
+    ...existingExpense,
+    settled,
+    settledAt: settled ? Date.now() : null,
+    createdAt: getCreatedAtValue(existingExpense.createdAt)
+  });
+
+  return {
+    message: settled ? 'Expense marked as settled.' : 'Expense marked as pending.'
   };
 };
 
@@ -64,6 +95,8 @@ export const getExpensesWithSheets = async (): Promise<ExpenseWithSheet[]> => {
       amount: Number(expense.amount),
       details: expense.details,
       date: expense.date,
+      settled: Boolean(expense.settled),
+      settledAt: typeof expense.settledAt === 'number' ? expense.settledAt : null,
       createdAt: getCreatedAtValue(expense.createdAt),
       sheetName: getSheetNameFromDate(expense.date)
     };

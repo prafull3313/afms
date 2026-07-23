@@ -138,6 +138,52 @@
     font-weight: 700;
 }
 
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.summaryCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fffaf4;
+    border: 1px solid #f6b26b;
+    border-radius: 8px;
+    color: #8f4508;
+    font-weight: 700;
+}
+
+.summaryCard strong {
+    color: #e46f1a;
+    white-space: nowrap;
+}
+
+.checkboxField {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+}
+
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #8f4508;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.checkboxLabel input {
+    width: 18px;
+    height: 18px;
+    accent-color: #e46f1a;
+}
+
 .personTotalsGrid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -194,6 +240,44 @@
     font-size: 15px;
 }
 
+.statusBadgePending,
+.statusBadgeActive {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 6px 10px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.statusBadgePending {
+    background: #ffe2c2;
+    color: #9a4a0c;
+}
+
+.statusBadgeActive {
+    background: #e7f6e7;
+    color: #256d32;
+}
+
+.settlementButton {
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 12px;
+    background: #e46f1a;
+    color: #fff8ef;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.settlementButton:disabled {
+    background: #ffe1c2;
+    color: #b68453;
+    cursor: not-allowed;
+}
+
 .table tbody tr:nth-child(even) {
     background: #fff4e7;
 }
@@ -233,6 +317,7 @@
         min-width: 100%;
     }
 
+    .summaryGrid,
     .personTotalsGrid {
         grid-template-columns: 1fr;
     }
