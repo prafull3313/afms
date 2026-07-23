@@ -19,7 +19,7 @@ export type Expense = {
   amount: number;
   details: string;
   date: string;
-  settled?: boolean;
+  settled: boolean;
   settledAt?: number | null;
 };
 

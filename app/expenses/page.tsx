@@ -401,7 +401,7 @@ export default function ExpensesPage() {
                           <button
                             className={styles.settlementButton}
                             type="button"
-                            onClick={() => void handleSettlementToggle(expense.id, expense.settled)}
+                            onClick={() => void handleSettlementToggle(expense.id, Boolean(expense.settled))}
                             disabled={updatingSettlementId === expense.id}
                           >
                             {updatingSettlementId === expense.id
