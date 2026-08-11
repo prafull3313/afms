@@ -100,7 +100,10 @@ function isValidExpense(data) {
     data.settled is bool &&
     ((data.settled == true && data.settledAt is number) ||
       (data.settled == false && data.settledAt == null));
- &&
+}
+
+function isValidMetadata(data) {
+  return data.keys().hasAll(['key', 'value', 'createdAt', 'updatedAt']) &&
     data.key is string &&
     data.key.size() > 0 &&
     data.key.size() <= 100 &&
