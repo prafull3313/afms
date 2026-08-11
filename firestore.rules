@@ -50,14 +50,6 @@ function isValidEntry(data) {
     data.customerName.size() > 0 &&
     data.customerName.size() <= 80 &&
     data.grainType is string &&
-    data.grainType in [
-      'Gahu Pith',
-      'Gahu Dalan',
-      'Jwari Pith',
-      'Jwari Dalan',
-      'Bajari Pith',
-      'Bajari Dalan'
-    ] &&
     data.weight is number &&
     data.weight > 0 &&
     data.weight <= 10000 &&
@@ -108,10 +100,7 @@ function isValidExpense(data) {
     data.settled is bool &&
     ((data.settled == true && data.settledAt is number) ||
       (data.settled == false && data.settledAt == null));
-}
-
-function isValidMetadata(data) {
-  return data.keys().hasAll(['key', 'value', 'createdAt', 'updatedAt']) &&
+ &&
     data.key is string &&
     data.key.size() > 0 &&
     data.key.size() <= 100 &&
